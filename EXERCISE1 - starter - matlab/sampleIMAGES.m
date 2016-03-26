@@ -23,15 +23,15 @@ patches = zeros(patchsize*patchsize, numpatches);
 %  more details.) As a second example, IMAGES(21:30,21:30,1) is an image
 %  patch corresponding to the pixels in the block (21,21) to (30,30) of
 %  Image 1
-
-
-
-
-
-
-
-
-
+[row,col,n] = size(IMAGES);
+for i = 1 : numpatches
+    pickedImage = round(rand()*(n-1))+1;
+    pickedRow = round(rand()*(row-patchsize))+1;
+    pickedCol = round(rand()*(col-patchsize))+1;
+    tempPatch = IMAGES(pickedRow:pickedRow+patchsize-1,pickedCol:pickedCol...
+        +patchsize-1,pickedImage);
+    patches(:,i) = tempPatch(:);
+end
 
 %% ------------------------------------------------------------------------
 % For the autoencoder to work well we need to normalize the data

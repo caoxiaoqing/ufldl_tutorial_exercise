@@ -41,24 +41,56 @@ b2grad = zeros(size(b2));
 % Stated differently, if we were using batch gradient descent to optimize the parameters,
 % the gradient descent update to W1 would be W1 := W1 - alpha * W1grad, and similarly for W2, b1, b2. 
 % 
+sparsity = zeros(hiddenSize,1);
+% forward propogation
+for i = 1 : size(data,2)
 
+    x = data(:,i);
+    z2 = W1*x  + b1;
+    a2 = sigmoid(z2);
+    z3 = W2*a2 + b2;
+    a3 = sigmoid(z3);
+    
+    % sum-of-squares error term
+    cost = cost + sum((a3-x).^2)/2;
+    
+    % used for weight decay term
+    sparsity = sparsity + a2;
+    
+end
 
+cost = cost / size(data,2); % average among m training examples
+cost = cost + 0.5*lambda*(sum(W1(:).^2)+sum(W2(:).^2)); % weight decay term
 
+sparsity = sparsity / size(data,2);
+sparsityTerm = sum(sparsityParam*log(sparsityParam./sparsity)+...
+    (1-sparsityParam)*log((1-sparsityParam)./(1.-sparsity)));
+cost = cost + beta*sparsityTerm; % sparsity penalty term
 
+% backward propogation
+for i = 1 : size(data,2)
 
+    x = data(:,i);
+    z2 = W1*x  + b1;
+    a2 = sigmoid(z2);
+    z3 = W2*a2 + b2;
+    a3 = sigmoid(z3);
 
+    delta3 = (a3-x).*(a3.*(1-a3));
+    delta2 = (W2'*delta3 + ...
+        beta*(-sparsityParam./sparsity+(1-sparsityParam)./(1-sparsity)))...
+        .*(a2.*(1-a2));
+    
+    W1grad = W1grad + delta2*(x' );
+    W2grad = W2grad + delta3*(a2');
+    b1grad = b1grad + delta2;
+    b2grad = b2grad + delta3;   
+end
 
-
-
-
-
-
-
-
-
-
-
-
+W1grad = W1grad / size(data,2) + lambda*W1;
+W2grad = W2grad / size(data,2) + lambda*W2;
+b1grad = b1grad / size(data,2);
+b2grad = b2grad / size(data,2);
 
 %-------------------------------------------------------------------
 % After computing the cost and gradient, we will convert the gradients back
